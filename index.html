@@ -1,0 +1,92 @@
+<html>
+	<head>
+		  <script src="http://code.jquery.com/jquery-1.8.2.js"></script>
+		    <script src="http://code.jquery.com/ui/1.9.0/jquery-ui.js"></script>
+		    <script src="jquery.csv.js"></script>
+		    <script type="text/javascript">
+$.ajax({
+	    url: "words.csv",
+	        async: false,
+		    success: function (csvd) {
+			            data = $.csv.toArrays(csvd);
+				        },
+		        dataType: "text",
+			    complete: function () {
+				            // call a function on complete 
+				    window.onload = display;
+				        }
+});
+function randomIntFromInterval(min,max)
+{
+	    return Math.floor(Math.random()*(max-min+1)+min);
+}
+var position = -1;
+var displayTime = new Date();
+function display() {
+	position = randomIntFromInterval(1, data.length-1);
+	var word = data[position][1];
+	document.getElementById('word').innerText = word + " (position=" + position + ", freq=" + data[position][3]+")";
+	displayTime = new Date();
+}
+function next(gender) {
+	var tuple = data[position];
+	var message = new Date().getTime() + "  word " + tuple[1] + " expected " + tuple[2] + " entered " + gender + " delay " + (new Date() - displayTime) + " freq " + tuple[3];
+	document.getElementById('message').innerText = message;
+	var color = 'yellow';
+	if (gender == tuple[2]) {
+		color = 'green';
+	} else {
+		color = 'red';
+	}
+	document.getElementById('message').style.color = color;
+	var oldMessage = readCookie('message');
+	var history = oldMessage + ". " + message;
+	document.getElementById('history').innerText = history.replace(/\./g,'\n');
+	createCookie('message', history, 30);
+display();
+}
+
+// http://stackoverflow.com/questions/14573223/set-cookie-and-get-cookie-with-javascript
+function createCookie(name,value,days) {
+	    var expires = "";
+	        if (days) {
+			        var date = new Date();
+				        date.setTime(date.getTime() + (days*24*60*60*1000));
+					        expires = "; expires=" + date.toUTCString();
+						    }
+		    document.cookie = name + "=" + value + expires + "; path=/";
+}
+
+function readCookie(name) {
+	    var nameEQ = name + "=";
+	        var ca = document.cookie.split(';');
+		    for(var i=0;i < ca.length;i++) {
+			            var c = ca[i];
+				            while (c.charAt(0)==' ') c = c.substring(1,c.length);
+					            if (c.indexOf(nameEQ) == 0) return c.substring(nameEQ.length,c.length);
+					        }
+		        return null;
+}
+
+document.addEventListener("keydown", keyDownTextField, false);
+
+function keyDownTextField(e) {
+	var keyCode = e.keyCode;
+	if (keyCode == 78 || keyCode == 83) {
+		next('n');
+	} else if (keyCode == 77 || keyCode==82) {
+		next('m');
+	} else if (keyCode == 69 || keyCode == 70) {
+		next('f');
+	}
+}
+		    </script>
+	</head>
+	<body>
+		<h1 id="word"></h1>
+		<a href="javascript:next('m')">der (or press m/r)</a>&nbsp;<a href="javascript:next('n');">das (or press n/s)</a>&nbsp;<a href="javascript:next('f');">die (or press f/e)</a><br />
+		<a href="javascript:createCookie('message','',30);">reset history</a>
+		<h3 id="message"></h3>
+		<textarea rows="50" cols="80" id="history"></textarea>
+	</body>
+</html>
